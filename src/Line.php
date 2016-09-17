@@ -46,18 +46,18 @@ class Line
         }
 
         if(strlen(trim($line)) == 0) {
-            $this->type = LINE_IS_EMPTY;
+            $this->type = self::LINE_IS_EMPTY;
             return;
         }
 
         if(strpos(ltrim($line), '#') === 0) {
-            $this->type = LINE_IS_COMMENT;
+            $this->type = self::LINE_IS_COMMENT;
             $this->value = substr(ltrim($line), 1);
             return;
         }
 
         // Now we got a variable
-        $this->type = LINE_IS_VARIABLE;
+        $this->type = self::LINE_IS_VARIABLE;
         $i = 0;
 
         // Find the first equal sign (so that values may have an equal in them)
@@ -97,7 +97,7 @@ class Line
      */
     public function isVariable()
     {
-        return ($this->type === LINE_IS_VARIABLE);
+        return ($this->type === self::LINE_IS_VARIABLE);
     }
 
     /**
@@ -106,7 +106,7 @@ class Line
      */
     public function isComment()
     {
-        return ($this->type === LINE_IS_COMMENT);
+        return ($this->type === self::LINE_IS_COMMENT);
     }
 
     /**
@@ -115,7 +115,7 @@ class Line
      */
     public function isEmpty()
     {
-        return ($this->type === LINE_IS_EMPTY);
+        return ($this->type === self::LINE_IS_EMPTY);
     }
 
     /**
@@ -218,7 +218,7 @@ class Line
                 $ret .= ' # ' . trim($this->trailingComment);
             }
             return $ret;
-        } elseif($this->type == LINE_IS_COMMENT) {
+        } elseif($this->isComment()) {
             return '# ' . trim($this->value);
         } else {
             return "";

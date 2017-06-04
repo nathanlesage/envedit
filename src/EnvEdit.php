@@ -7,21 +7,21 @@ use NathanLeSage\Line;
 class EnvEdit
 {
     /**
-     * The path to the .env-file
-     * @var string
-     */
+    * The path to the .env-file
+    * @var string
+    */
     protected $file = '';
 
     /**
-     * An array of lines contained in the file
-     * @var array
-     */
+    * An array of lines contained in the file
+    * @var array
+    */
     protected $lines = [];
 
     /**
-     * Constructor checks the file's existance and determines the .env-file if possible
-     * @param string $file The full path to the file
-     */
+    * Constructor checks the file's existance and determines the .env-file if possible
+    * @param string $file The full path to the file
+    */
     public function __construct($file = null)
     {
         if(isset($file)) {
@@ -35,14 +35,14 @@ class EnvEdit
         }
 
         if(!is_file($this->file)) {
-            throw new Exception("Could not find .env-file!");
+            throw new \Exception("Could not find .env-file!");
         }
     }
 
     /**
-     * Reads the contents of the file into its line-array
-     * @return EnvEdit Returns $this for chainability
-     */
+    * Reads the contents of the file into its line-array
+    * @return EnvEdit Returns $this for chainability
+    */
     public function read()
     {
         if(count($this->lines) > 0) { // We are currently re-reading a file
@@ -65,11 +65,11 @@ class EnvEdit
     }
 
     /**
-     * This sets new values for any variables in the file. Important: It does NOT add new ones!
-     * @param array $newValues An associative array containing varnames and their new values
-     * @return EnvEdit Returns $this for chainability
-     */
-    public function setVars(array $newValues)
+    * This sets new values for any variables in the file. Important: It does NOT add new ones!
+    * @param array $newValues An associative array containing varnames and their new values
+    * @return EnvEdit Returns $this for chainability
+    */
+    public function set(array $newValues)
     {
         // Now write all fields with the new values
         foreach($newValues as $name => $field) {
@@ -82,6 +82,9 @@ class EnvEdit
                 if($line->getVarname() == $name) {
                     $line->setValue($field);
                 }
+
+                // For sanity reasons we are dismissing _new_ values here.
+                // To add new values to an .env-file please use the add() function
             }
         }
 
@@ -89,11 +92,36 @@ class EnvEdit
     }
 
     /**
-     * Returns the value of a specific .env-variable
-     * @param  string $varname The variable, for which the value is desired
-     * @return mixed          Either false, if the variable does not exist or its value
-     */
-    public function getValue($varname)
+    * This function adds a previously unknown value to the .env-file
+    * @param string $var   The variable to be added
+    * @param string $value The value to be written
+    */
+    public function add($var, $value)
+    {
+        // Do we already have this variable?
+        foreach($this->lines as $line) {
+            if(!$line->isVariable()) {
+                continue;
+            }
+
+            // The variable is already existing. So just update and return
+            if($line->getVarname() == $name) {
+                $line->setValue($field);
+                return $this;
+            }
+        }
+
+        $this->lines[] = new Line($var . '=' . $value);
+
+        return $this;
+    }
+
+    /**
+    * Returns the value of a specific .env-variable
+    * @param  string $varname The variable, for which the value is desired
+    * @return mixed          Either false, if the variable does not exist or its value
+    */
+    public function get($varname)
     {
         foreach($this->lines as $line) {
             if(!$line->isVariable()) {
@@ -109,9 +137,9 @@ class EnvEdit
     }
 
     /**
-     * This function returns the file instead of writing it. Useful for backing up the .env-file
-     * @return string The complete file contents
-     */
+    * This function returns the file instead of writing it. Useful for backing up the .env-file
+    * @return string The complete file contents
+    */
     public function getFile()
     {
         $newEnv = '';
@@ -124,18 +152,12 @@ class EnvEdit
     }
 
     /**
-     * Overwrites the .env-file with the current object buffer
-     * @return boolean Returns true on successful write, or false otherwise
-     */
+    * Overwrites the .env-file with the current object buffer
+    * @return boolean Returns true on successful write, or false otherwise
+    */
     public function write()
     {
-        $newEnv = '';
-        // Rebuild the file
-        foreach($this->lines as $line) {
-            $newEnv .= $line->getLine() . "\n";
-        }
-
-        // And write it!
-        return (file_put_contents($this->file, rtrim($newEnv)) !== false);
+        // Just write the file to disk
+        return (file_put_contents($this->file, rtrim($this->getFile())) !== false);
     }
 }
